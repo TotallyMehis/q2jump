@@ -20,6 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "g_local.h"
 
+qboolean readCfgFile(char *cfgfilename);
+void ServerError(char *error);
+void SetSpinnyThing(void);
+
 static qboolean break_out_of_spawn;
 typedef struct
 {
@@ -402,7 +406,7 @@ char *ED_NewString (char *string)
 	
 	l = strlen(string) + 1;
 
-	newb = gi.TagMalloc (l, TAG_LEVEL);
+	newb = (char*)gi.TagMalloc (l, TAG_LEVEL);
 
 	new_p = newb;
 
@@ -695,7 +699,7 @@ debug_log(text);
 		fseek (fe_add , 0 , SEEK_END);
 		lSize = ftell (fe_add);
 		rewind (fe_add);   
-		buffer2 = malloc (lSize);
+		buffer2 = (char*)malloc (lSize);
 		if (buffer2 == NULL)
 		{
 			fclose (fe_add);

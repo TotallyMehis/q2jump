@@ -8,6 +8,8 @@
 
 #include "g_local.h"
 
+#include <cctype>
+
 int breakLine(char *buffer, char *buff1, char *buff2, int buff2size)
 {
 	char *cp, *dp;

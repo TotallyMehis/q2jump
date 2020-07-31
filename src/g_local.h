@@ -1189,7 +1189,6 @@ struct gclient_s
 
 };
 
-
 struct edict_s
 {
 	entity_state_t	s;
@@ -1345,7 +1344,7 @@ struct edict_s
 
 };
 
-int ESF_debug;
+//int ESF_debug;
 
 //ZOID
 #include "g_ctf.h"

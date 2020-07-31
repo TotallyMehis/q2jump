@@ -20,6 +20,26 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "g_local.h"
 
+void SendFlashLight(edict_t *ent);
+void ServerError(char *error);
+void Generate_Race_Data(int race_frame,int race_this);
+void Random_Teams(void);
+void ForceEveryoneToHard(void);
+int CheckOverTimeLastManRules(void);
+int CheckOverTimeRules(void);
+int RemoveAllItems(void);
+void TagLeave(edict_t *ent);
+void NewTag(void);
+qboolean CTFBeginElection(edict_t *ent, elect_t type, char *msg,qboolean require_max);
+void PassTag(edict_t *from);
+void CTFAutoJoinTeam(edict_t *ent, int desired_team);
+void UpdateVoteMenu(void);
+void Ghost_Play_Frame(void);
+void Generate_Highlight_List(edict_t *ent);
+
+
+//int ESF_debug;
+
 game_locals_t	game;
 level_locals_t	level;
 game_import_t	gi;
@@ -1107,7 +1127,7 @@ void G_RunFrame (void)
 
 	Ghost_Play_Frame();
 
-	Generate_Highlight_List();
+	Generate_Highlight_List(nullptr);
 	if (!mset_vars->timelimit)
 	{
 		gi.cvar_set("time_remaining","unlimited");

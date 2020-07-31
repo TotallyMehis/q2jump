@@ -20,6 +20,34 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"  
 #include "m_player.h"
 
+void AddBan(edict_t *ent);
+void AddMap(edict_t *ent);
+void give_item(edict_t *ent,char *name);
+void Overtime_Kill(edict_t *ent);
+void weapon_ball_fire(edict_t *ent);
+void Add_Time(edict_t *ent);
+void showfps(edict_t *ent);
+void stuff_client(edict_t *ent);
+void D_Votes(edict_t *ent);
+void add_clip(edict_t *ent);
+void Skin_Ent(edict_t *ent);
+void list_mapsdone(edict_t *ent);
+void CTFVoteTime(edict_t *ent);
+void Cmd_Idle(edict_t *ent);
+void SlapClient(edict_t *ent);
+void change_admin_pass(edict_t *ent);
+void ASET(edict_t *ent);
+void ThrowUpNow(edict_t *self);
+void Cmd_RepRepeat (edict_t *ent);
+void RemoveMap (edict_t* ent);
+void Cmd_Debug (edict_t *ent);
+void Cmd_UpdateScores(edict_t* ent);
+void PlayTag(edict_t *ent);
+void Cmd_Score2_f (edict_t *ent);
+void cmsg(edict_t *ent);
+void ShowPlayerMaps(edict_t *ent);
+void FlashLight(edict_t *ent);
+void CTFJoinTeam(edict_t *ent, int desired_team);
 
 char *ClientTeam (edict_t *ent)
 {
@@ -1132,6 +1160,7 @@ ClientCommand
 =================
 */
 
+void ClientCommand_2(edict_t *ent);
 void ClientCommand (edict_t *ent)
 {
 //	char crashstr[4];
@@ -1577,7 +1606,15 @@ void ClientCommand (edict_t *ent)
 		Jumpers_on_off(ent);
 	else if (Q_stricmp(cmd, "velstore") == 0) //velocity store feature
 		Velocity_store_toggle(ent);
-	else if (Q_stricmp (cmd, "cpsound") == 0)
+	else // This needs to be separated because MSVC complains about it. LOL!
+		ClientCommand_2(ent);
+}
+
+void ClientCommand_2(edict_t *ent)
+{
+	char* cmd = gi.argv(0);
+
+	if (Q_stricmp (cmd, "cpsound") == 0)
 		Cpsound_on_off(ent);
 	else if (Q_stricmp(cmd, "showtimes") == 0)
 		Showtimes_on_off(ent);
@@ -1604,4 +1641,3 @@ void ClientCommand (edict_t *ent)
 		Cmd_Say_f (ent, false, true);
 	}
 }
-

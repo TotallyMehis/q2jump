@@ -1016,13 +1016,20 @@ void SP_trigger_monsterjump (edict_t *self)
 	self->touch = trigger_monsterjump_touch;
 	self->movedir[2] = st.height;
 }
-
 // Trigger that works with Pickup_Weapon.
 // Used as a finish (railgun by default)
 // Add a <message> value with a classname of a weapon in the editor to change it to some other weapon.
 // Then it can be used to give players a weapon, like rocket launcher or bfg or whatever.
 // e.g. "message = weapon_rocketlauncher"
 // options: weapon_railgun, weapon_rocketlauncher, weapon_grenadelauncher, weapon_bfg
+void trigger_finish_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
+{
+	if (!Pickup_Weapon(self, other))
+	{
+		gi.cprintf(other, PRINT_HIGH, "Failed to pickup weapon from trigger_finish!!!\n");
+	}
+}
+
 void SP_trigger_finish(edict_t *ent)
 {
 	gitem_t *wep;
@@ -1044,7 +1051,7 @@ void SP_trigger_finish(edict_t *ent)
 	ent->solid = SOLID_TRIGGER;
 	ent->item = wep;
 	//ent->item->pickup_name = wep->pickup_name;
-	ent->touch = Pickup_Weapon;
+	ent->touch = trigger_finish_touch;
 	gi.setmodel(ent, ent->model);
 	gi.linkentity(ent);
 }

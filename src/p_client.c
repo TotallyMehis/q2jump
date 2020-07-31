@@ -22,6 +22,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_player.h"
 
 void SP_misc_teleporter_dest (edict_t *ent);
+void Cmd_RepRepeat (edict_t *ent);
+void CTFApplyDegeneration(edict_t *ent);
+void OverTime_GiveAll(edict_t *temp,qboolean rocket);
+void	SelectSpawnPointFromDemo (edict_t *ent, vec3_t origin, vec3_t angles);
+void TagLeave(edict_t *ent);
 
 //
 // Gross, ugly, disgustuing hack section
@@ -169,7 +174,7 @@ void SP_info_player_coop(edict_t *self)
 The deathmatch intermission point will be at one of these
 Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.  'pitch yaw roll'
 */
-void SP_info_player_intermission(void)
+void SP_info_player_intermission(edict_t *ent)
 {
 }
 
@@ -1652,9 +1657,9 @@ void ClientBeginDeathmatch (edict_t *ent)
 
 //	gi.cprintf(ent,PRINT_CHAT,"console: p_version\n");
 	// make sure all view stuff is valid
-	ESF_debug = 1;
+	//ESF_debug = 1;
 	ClientEndServerFrame (ent);
-	ESF_debug = 0;
+	//ESF_debug = 0;
 }
 
 
@@ -2363,7 +2368,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 //ZOID
 	if (client->ctf_grapple)
-		CTFGrapplePull(client->ctf_grapple);
+		CTFGrapplePull((edict_t*)client->ctf_grapple);
 //ZOID
 
 	gi.linkentity (ent);

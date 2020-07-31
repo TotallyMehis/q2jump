@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_player.h"
 
 
+void ThrowUpNow(edict_t *self);
+
 
 static	edict_t		*current_player;
 static	gclient_t	*current_client;

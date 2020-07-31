@@ -37,6 +37,9 @@ void Weapon_Railgun (edict_t *ent);
 void Weapon_BFG (edict_t *ent);
 void Weapon_Finish (edict_t *ent);
 
+void ServerError(char *error);
+void End_Overtime(void);
+
 gitem_armor_t jacketarmor_info	= { 25,  50, .30, .00, ARMOR_JACKET};
 gitem_armor_t combatarmor_info	= { 50, 100, .60, .30, ARMOR_COMBAT};
 gitem_armor_t bodyarmor_info	= {100, 200, .80, .60, ARMOR_BODY};

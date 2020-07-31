@@ -1,7 +1,8 @@
 #include "g_local.h"
 #include "g_wireplay.h"
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
+#include <direct.h>
 #else
 #include <sys/types.h>
 #include <sys/time.h>
@@ -11,6 +12,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+void ED_CallSpawn(edict_t *ent);
+void ED_ParseField(char *key, char *value, edict_t *ent,int add);
+void End_Jumping(void);
+void CTFWinElection(int pvote, edict_t* pvoter);
+qboolean CTFBeginElection(edict_t *ent, elect_t type, char *msg,qboolean require_max);
+qboolean IsString (char* string);
+void give_item (edict_t *ent,char *name);
+void CTFReplayer(edict_t *ent);
+void Cmd_Kill_f (edict_t *ent);
+void SP_jumpbox_small (edict_t *ent);
+void SP_jumpbox_medium (edict_t *ent);
+void SP_jumpbox_large (edict_t *ent);
+void SP_cpbox_small (edict_t *ent);
+void SP_cpbox_medium (edict_t *ent);
+void SP_cpbox_large (edict_t *ent);
+void SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles);
+int FindTRecID(int uid);
+
+html_data_t html_data;
 
 int curclients = 0;
 int activeclients = 0;
@@ -1287,7 +1308,7 @@ int LoadMapList(char *filename)
    maplist.num_users = 0;
    maplist.sort_num_users = 0;
    //read in users file
-   open_users_file(1);
+   open_users_file();
 
 
 	strcpy(maplist.path,filename);
@@ -6190,7 +6211,7 @@ qboolean writeMapCfgFile(char *cfgfilename)
 						comparison = *((int *)zbotCommands[i].datapoint)!=*((int *)zbotCommands[i2].datapoint);
 						break;
 					case CMDTYPE_STRING:
-						comparison = (strcmp(zbotCommands[i].datapoint,zbotCommands[i2].datapoint)!=0);
+						comparison = (strcmp((char*)zbotCommands[i].datapoint,(char*)zbotCommands[i2].datapoint)!=0);
 						break;
 					}
 					
@@ -6305,7 +6326,7 @@ qboolean readCfgFile(char *cfgfilename)
                 break;
 
               case CMDTYPE_STRING:
-                strcpy(zbotCommands[i].datapoint, buff2);
+                strcpy((char*)zbotCommands[i].datapoint, buff2);
                 break;
             }
 
@@ -6347,7 +6368,7 @@ void processCommand(int cmdidx, int startarg, edict_t *ent)
         break;
 
       case CMDTYPE_STRING:
-        processstring(zbotCommands[cmdidx].datapoint, gi.argv(startarg), 255, 0);
+        processstring((char*)zbotCommands[cmdidx].datapoint, gi.argv(startarg), 255, 0);
         break;
     }
   }
@@ -12291,7 +12312,7 @@ void ListBans(edict_t *ent)
 			break;
 		if (!bans[i].inuse)
 			continue;
-		time_str = ctime(&bans[i].expiry);
+		time_str = ctime((time_t*)&bans[i].expiry);
 		time_str[strlen(time_str) - 1] = '\0';
 		gi.cprintf(ent,PRINT_HIGH," %-2d | %-19s | %-25s | %lu \n",i,bans[i].idstring,bans[i].expiry ? time_str : "None",bans[i].banflags);
 	}
@@ -12344,7 +12365,7 @@ void AddBan(edict_t *ent)
 	bans[i].ipban = ipban;
 	bans[i].inuse = true;
 
-	time_str = ctime(&bans[i].expiry);
+	time_str = ctime((time_t*)&bans[i].expiry);
 	time_str[strlen(time_str) - 1] = '\0';
 
 	gi.cprintf(ent,PRINT_HIGH," ID |       IP/Name       |        Expiry time        | Ban flags\n");
