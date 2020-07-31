@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 //defines
 #define MAX_USERS 4096
 #define MAX_HIGHSCORES 15
@@ -175,7 +177,7 @@ typedef struct
 	edict_t *fastest_player;
 	int			recorded_time_uid[1+MAX_HIGHSCORES];
 	int			recorded_time_frames[1+MAX_HIGHSCORES];
-	record_data recorded_time_data[1+MAX_HIGHSCORES][MAX_RECORD_FRAMES];
+	std::vector<record_data> recorded_time_data[1+MAX_HIGHSCORES];
 
 	qboolean	locked;
 	edict_t		*locked_by;
@@ -186,7 +188,7 @@ typedef struct
 
 typedef struct
 {
-	record_data data[MAX_RECORD_FRAMES];
+	std::vector<record_data> data;
 	qboolean	allow_record;
 	int			current_frame;
 } rpos;

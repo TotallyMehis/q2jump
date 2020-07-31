@@ -4406,18 +4406,25 @@ void Start_Recording(edict_t *ent)
 	if (gametype->value==GAME_CTF)
 	{
 		client_record[index].allow_record = true;
-		client_record[index].current_frame = 0;
 	}
 	else
 	if (ent->client->resp.ctf_team!=CTF_TEAM2)
 	{
 		client_record[index].allow_record = false;
-		client_record[index].current_frame = 0;
 	} else
 	{
 		client_record[index].allow_record = true;
-		client_record[index].current_frame = 0;
 	}
+
+	client_record[index].current_frame = 0;
+	client_record[index].data.clear();
+
+	//if (client_record[index].allow_record)
+	//{
+		// TODO: Reserve based on worst case scenario? (eg. last 
+		//const float reserve_seconds = 600.0f;
+		//client_record[index].data.reserve((1.0f/FRAMETIME) * reserve_seconds);
+	//}
 }
 
 void Stop_Recording(edict_t *ent)
@@ -4475,10 +4482,10 @@ void		Save_Recording(edict_t *ent,int uid,int uid_1st)
 	if (!f)
 		return;
 
-	fwrite(client_record[index].data,sizeof(record_data),client_record[index].current_frame,f);
+	fwrite(client_record[index].data.data(),sizeof(record_data),client_record[index].data.size(),f);
 	//now put it in local data
 	level_items.recorded_time_frames[0] = client_record[index].current_frame;
-	memcpy(level_items.recorded_time_data[0],client_record[index].data,sizeof(client_record[index].data));
+	level_items.recorded_time_data[0].swap(client_record[index].data);
 
 	fclose(f);
 }
@@ -4502,7 +4509,7 @@ void Save_Individual_Recording(edict_t *ent)
 	if (!f)
 		return;
 
-	fwrite(client_record[index].data,sizeof(record_data),client_record[index].current_frame,f);
+	fwrite(client_record[index].data.data(),sizeof(record_data),client_record[index].data.size(),f);
 	fclose(f);
 }
 
@@ -4511,7 +4518,7 @@ void Save_Current_Recording(edict_t *ent)
 	int index;
 	index = ent-g_edicts-1;
 	level_items.recorded_time_frames[MAX_HIGHSCORES] = client_record[index].current_frame;
-	memcpy(level_items.recorded_time_data[MAX_HIGHSCORES],client_record[index].data,sizeof(client_record[index].data));
+	level_items.recorded_time_data[MAX_HIGHSCORES].swap(client_record[index].data);
 }
 
 void Record_Frame(edict_t *ent)
@@ -4524,9 +4531,11 @@ void Record_Frame(edict_t *ent)
 	if ((client_record[index].allow_record) && (ent->client->resp.ctf_team==CTF_TEAM2 || (gametype->value==GAME_CTF && ent->client->resp.ctf_team==CTF_TEAM1)))
 	{
 		if (client_record[index].current_frame<MAX_RECORD_FRAMES)
-		{			
-			VectorCopy(ent->s.origin,client_record[index].data[client_record[index].current_frame].origin);
-			VectorCopy(ent->client->v_angle,client_record[index].data[client_record[index].current_frame].angle);
+		{
+			record_data newdata;
+			VectorCopy(ent->s.origin, newdata.origin);
+			VectorCopy(ent->client->v_angle, newdata.angle);
+
 #ifdef ANIM_REPLAY
 
 			store = ent->s.frame | ((ent->client->pers.fps & 255)<<RECORD_FPS_SHIFT);
@@ -4546,8 +4555,10 @@ void Record_Frame(edict_t *ent)
 				store |= RECORD_KEY_ATTACK;
 
 
-			client_record[index].data[client_record[index].current_frame].frame = store;
+			newdata.frame = store;
 #endif
+			client_record[index].data.push_back(newdata);
+
 			client_record[index].current_frame++;
 		}
 	}
@@ -4701,9 +4712,10 @@ void Load_Recording(void)
 	lSize = ftell (f);
 	rewind (f);
 
-	fread(level_items.recorded_time_data[0],1,lSize,f);
+	level_items.recorded_time_data[0].resize(lSize / sizeof(record_data));
+	fread(level_items.recorded_time_data[0].data(),1,lSize,f);
 	//now put it in local data
-	level_items.recorded_time_frames[0] = lSize / sizeof(record_data);
+	level_items.recorded_time_frames[0] = level_items.recorded_time_data[0].size();
 
 	fclose(f);
 
@@ -4739,9 +4751,10 @@ void Load_Individual_Recording(int num,int uid)
 	rewind (f);
 	level_items.recorded_time_uid[num] = uid;
 
-	fread(level_items.recorded_time_data[num],1,lSize,f);
+	level_items.recorded_time_data[num].resize(lSize / sizeof(record_data));
+	fread(level_items.recorded_time_data[num].data(),1,lSize,f);
 	//now put it in local data
-	level_items.recorded_time_frames[num] = lSize / sizeof(record_data);
+	level_items.recorded_time_frames[num] = level_items.recorded_time_data[num].size();
 
 	fclose(f);
 
@@ -4851,10 +4864,27 @@ void Replay_Recording(edict_t *ent)
 		}
 		//replay speedometer a la Killa
 		if (ent->client->resp.replaying) {
-			VectorCopy(level_items.recorded_time_data[temp][(int)ent->client->resp.replay_frame - 10].origin, rep_speed1);
-			rep_speed1[2] = 0;
-			VectorCopy(level_items.recorded_time_data[temp][(int)ent->client->resp.replay_frame].origin, rep_speed2);
+			int iCurFrame = (int)ent->client->resp.replay_frame;
+			if (iCurFrame >= level_items.recorded_time_data[temp].size())
+			{
+				iCurFrame = level_items.recorded_time_data[temp].size()-1;
+			}
+
+			VectorCopy(level_items.recorded_time_data[temp][iCurFrame].origin, rep_speed2);
 			rep_speed2[2] = 0;
+
+			int iPrevFrame = (int)ent->client->resp.replay_frame - 10;
+			if (iPrevFrame >= 0)
+			{
+				VectorCopy(level_items.recorded_time_data[temp][iPrevFrame].origin, rep_speed1);
+			}
+			else
+			{
+				VectorCopy(level_items.recorded_time_data[temp][0].origin, rep_speed1);
+			}
+			rep_speed1[2] = 0;
+
+
 			VectorSubtract(rep_speed1, rep_speed2, rep_speed1);
 			rep_speed = (int)fabs(VectorLength(rep_speed1));
 			//Don't update rep_speed if it's not 10 ups faster/slower than current rep_speed.
@@ -12963,7 +12993,7 @@ void Copy_Recording(int uid)
 	if (!f)
 		return;
 
-	fwrite(level_items.recorded_time_data[0],sizeof(record_data),level_items.recorded_time_frames[0],f);
+	fwrite(level_items.recorded_time_data[0].data(),sizeof(record_data),level_items.recorded_time_data[0].size(),f);
 	fclose(f);
 }
 
