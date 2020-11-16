@@ -962,6 +962,28 @@ qboolean CheckFlood(edict_t *ent)
 	return false;
 }
 
+qboolean CheckChatSlowMode(edict_t *ent)
+{
+	gclient_t *cl = ent->client;
+
+	// Check chat slow mode
+	if (cl->resp.chatslowmode)
+	{
+		float time_to_wait = chatslowmode_waitdelay->value;
+
+		if (cl->resp.last_chat_msg_time != 0.0f && (level.time - cl->resp.last_chat_msg_time) < time_to_wait)
+		{
+			gi.cprintf(ent, PRINT_HIGH, "You can't talk for %.1f more seconds!\n",
+				(time_to_wait - (level.time - cl->resp.last_chat_msg_time)));
+			return true;
+		}
+	}
+
+	cl->resp.last_chat_msg_time = level.time;
+
+	return false;
+}
+
 /*
 ==================
 Cmd_Say_f
@@ -1024,6 +1046,9 @@ void Cmd_Say_f (edict_t *ent, qboolean team, qboolean arg0)
 	}
 
 	strcat(text, "\n");
+
+	if (CheckChatSlowMode(ent))
+		return;
 
 	if (CheckFlood(ent))
 		return;
@@ -1297,6 +1322,10 @@ void ClientCommand (edict_t *ent)
 			CTFRand(ent);
 		else if (Q_stricmp (cmd, "nominate") == 0)
 			CTFNominate(ent);
+		else if (Q_stricmp (cmd, "slowmode") == 0)
+			CTFChatSlowMode(ent);
+		else if (Q_stricmp (cmd, "unslowmode") == 0)
+			CTFChatUnSlowMode(ent);
 		else if (Q_stricmp (cmd, "mvote") == 0)
 		{
 			if (gset_vars->tourney)

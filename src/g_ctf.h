@@ -259,7 +259,8 @@ typedef enum {
 	ELECT_ADDTIME,
 	ELECT_DUMMY,
 	ELECT_RAND,
-	ELECT_NOMINATE
+	ELECT_NOMINATE,
+	ELECT_CHATSLOWMODE
 } elect_t;
 
 typedef struct ctfgame_s

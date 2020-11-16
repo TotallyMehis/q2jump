@@ -581,6 +581,8 @@ extern	cvar_t	*flood_msgs;
 extern	cvar_t	*flood_persecond;
 extern	cvar_t	*flood_waitdelay;
 
+extern	cvar_t	*chatslowmode_waitdelay;
+
 extern	cvar_t	*sv_maplist;
 
 //ZOID
@@ -634,6 +636,7 @@ extern	gitem_t	itemlist[];
 // g_cmds.c
 //
 qboolean CheckFlood(edict_t *ent);
+qboolean CheckChatSlowMode(edict_t *ent);
 void Cmd_Help_f (edict_t *ent);
 void Cmd_Score_f (edict_t *ent);
 
@@ -1003,6 +1006,8 @@ typedef struct
 	qboolean	going_back;
 	float		repeat_time;
 	qboolean	silence;
+	qboolean	chatslowmode;
+	float		last_chat_msg_time;
 	int silence_until;
 	qboolean key_forward;
 	qboolean key_back;

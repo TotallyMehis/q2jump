@@ -263,6 +263,8 @@ void		hook_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *su
 void		fire_hook (edict_t *owner, vec3_t start, vec3_t forward);
 void		hook_fire (edict_t *ent);
 void		CTFSilence(edict_t *ent);
+void		CTFChatSlowMode(edict_t *ent);
+void		CTFChatUnSlowMode(edict_t *ent);
 int			get_admin_level(char *givenpass,char *givenname);
 void		admin_log(edict_t *ent,char *log_this);
 void		open_admin_file(void);

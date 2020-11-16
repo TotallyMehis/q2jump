@@ -271,6 +271,8 @@ void InitGame (void)
 	flood_persecond = gi.cvar ("flood_persecond", "4", 0);
 	flood_waitdelay = gi.cvar ("flood_waitdelay", "10", 0);
 
+	chatslowmode_waitdelay = gi.cvar ("chatslowmode_waitdelay", "30", 0);
+
 	// dm map list
 	sv_maplist = gi.cvar ("sv_maplist", "", 0);
 

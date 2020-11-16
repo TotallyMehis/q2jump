@@ -2707,6 +2707,9 @@ void CTFSay_Team(edict_t *who, char *msg)
 	char *p;
 	edict_t *cl_ent;
 
+	if (CheckChatSlowMode(who))
+		return;
+
 	if (CheckFlood(who))
 		return;
 
@@ -2881,7 +2884,7 @@ qboolean CTFBeginElection(edict_t *ent, elect_t type, char *msg,qboolean require
 	}
 
 	//get the type of vote -> count who should be able to vote.
-	if (type == ELECT_MAP || type == ELECT_ADDTIME || type == ELECT_NOMINATE || type == ELECT_RAND || type == ELECT_DUMMY) {
+	if (type == ELECT_MAP || type == ELECT_ADDTIME || type == ELECT_NOMINATE || type == ELECT_RAND || type == ELECT_DUMMY || type == ELECT_CHATSLOWMODE) {
 		count = Get_Voting_Clients();
 	}
 	else {
@@ -3215,6 +3218,25 @@ void CTFWinElection(int pvote, edict_t* pvoter)
 				gi.cprintf(e2,PRINT_CHAT, "Election timed out and has been cancelled.\n");
 			}
 		}
+		break;
+	case ELECT_CHATSLOWMODE:
+		ctfgame.ekick->client->resp.chatslowmode = true;
+
+		for (i = 1; i <= maxclients->value; i++) 
+		{
+			e2 = g_edicts + i;
+			if (!e2->inuse)
+				continue;
+			if (e2!=ctfgame.ekick)
+			{
+				gi.cprintf(e2,PRINT_HIGH, "%s %s was set to slow mode.\n", 
+					msg, ctfgame.ekick->client->pers.netname);
+			} else {
+				gi.cprintf(e2,PRINT_HIGH, "%s You were set to slow mode.\n", 
+					msg);
+			}
+		}
+
 		break;
 	case ELECT_DUMMY:
 		gi.bprintf(PRINT_HIGH, "%s's vote has passed.\n", 
@@ -4585,6 +4607,7 @@ void CTFAdmin(edict_t *ent)
 				gi.bprintf(PRINT_HIGH, "%s has become a level %d admin.\n", ent->client->pers.netname,admin_pass[alevel].level);
 			if (admin_pass[alevel].level>1)
 			{
+				ent->client->resp.chatslowmode = false;
 				ent->client->resp.silence = false;
 				ent->client->resp.silence_until = 0;
 			}

@@ -70,6 +70,8 @@ cvar_t	*flood_msgs;
 cvar_t	*flood_persecond;
 cvar_t	*flood_waitdelay;
 
+cvar_t	*chatslowmode_waitdelay;
+
 cvar_t	*sv_maplist;
 
 void SpawnEntities (char *mapname, char *entities, char *spawnpoint);
@@ -973,6 +975,7 @@ void G_RunFrame (void)
 			temp = &g_edicts[i+1];
 			CTFObserver(temp);	
 			temp->client->resp.got_time = false;
+			temp->client->resp.chatslowmode = false;
 			temp->client->resp.silence = false;
 			temp->client->resp.silence_until = 0;
 	}

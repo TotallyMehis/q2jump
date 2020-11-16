@@ -1960,6 +1960,7 @@ void ClientDisconnect (edict_t *ent)
 		level_items.fastest_player=NULL;
 
 	ent->client->resp.got_time = false;
+	ent->client->resp.chatslowmode = false;
 	ent->client->resp.silence = false;
 	ent->client->resp.silence_until = 0;
 	if (ent->client->pers.idle_player) {

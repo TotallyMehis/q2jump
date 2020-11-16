@@ -3494,6 +3494,155 @@ void CTFSilence(edict_t *ent)
 	}
 }
 
+void CTFChatSlowMode(edict_t *ent)
+{
+	int i;
+	edict_t *targ;
+	char text[1024];
+	
+
+
+	if ((!map_allow_voting) && (ent->client->resp.admin<aset_vars->ADMIN_SILENCE_LEVEL))
+		return;
+
+	if (ent->client->resp.chatslowmode)
+		return;
+
+	if (ent->client->resp.admin < aset_vars->ADMIN_VOTE_LEVEL)
+	if ((mset_vars->timelimit*60)+(map_added_time*60)-level.time<120)
+	{
+		gi.cprintf(ent,PRINT_HIGH,"You cannot initiate a vote of this kind when timeleft is under 2 minutes\n");
+		return;
+	}
+
+	if ((level.time<20) && (ent->client->resp.admin<aset_vars->ADMIN_SILENCE_LEVEL))
+	{
+		gi.cprintf(ent,PRINT_HIGH,"Please wait %2.1f seconds before calling a vote\n",20.0-level.time);
+		return;
+	}
+
+	if (gi.argc() < 2) {
+		CTFPlayerList(ent);
+		gi.cprintf(ent, PRINT_HIGH, "Who do you want to set to slow mode?\n");
+		return;
+	}
+
+	if (*gi.argv(1) < '0' && *gi.argv(1) > '9') {
+		CTFPlayerList(ent);
+		gi.cprintf(ent, PRINT_HIGH, "Specify the player number to set to slow mode.\n");
+		return;
+	}
+
+	i = atoi(gi.argv(1));
+	if (i < 1 || i > maxclients->value) {
+		CTFPlayerList(ent);
+		gi.cprintf(ent, PRINT_HIGH, "Invalid player number.\n");
+		return;
+	}
+
+	targ = g_edicts + i;
+	if (!targ->inuse) {
+		CTFPlayerList(ent);
+		gi.cprintf(ent, PRINT_HIGH, "That player number is not connected.\n");
+		return;
+	}
+
+	if (ent->client->resp.admin>1)
+	{
+		if (targ->client->resp.admin>=ent->client->resp.admin)
+		{
+			gi.cprintf(ent,PRINT_HIGH,"You may not slow an admin with a level higher or equal to yours.\n");
+			return;
+		}
+	}
+	else
+	{
+		if (targ->client->resp.admin>1)
+		{
+			gi.cprintf(ent,PRINT_HIGH,"You may not slow an admin.\n");
+			return;
+		}
+	}
+
+	if ((ent->client->resp.num_votes>= gset_vars->max_votes) && (ent->client->resp.admin < aset_vars->ADMIN_NOMAXVOTES_LEVEL))   // _h2
+	{
+		gi.cprintf(ent,PRINT_HIGH,"You had %d elections fail and cannot call anymore.\n",gset_vars->max_votes);
+		return;
+	}
+
+
+	if (ent->client->resp.admin>=aset_vars->ADMIN_SILENCE_LEVEL) {
+		//admin silence
+		targ->client->resp.chatslowmode = true;
+		sprintf(text,"set %s's chatting to slow mode.",targ->client->pers.netname);
+		admin_log(ent,text);
+
+		gi.bprintf(PRINT_HIGH, "%s's chatting was set to slow mode by %s.\n",
+			targ->client->pers.netname,ent->client->pers.netname);
+		return;
+	}
+
+	sprintf(text, "%s has requested setting %s chat to slow mode.", 
+			ent->client->pers.netname, targ->client->pers.netname);
+	if (CTFBeginElection(ent, ELECT_CHATSLOWMODE, text,false))
+	{		
+		gi.configstring (CONFIG_JUMP_VOTE_INITIATED,HighAscii(va("Vote by %s",ent->client->pers.netname)));
+		gi.configstring (CONFIG_JUMP_VOTE_TYPE,va("Slow Mode: %s",targ->client->pers.netname));
+		ctfgame.ekicknum = i-1;
+		ctfgame.ekick = targ;
+		if (ctfgame.needvotes==0)
+			CTFWinElection(0, NULL);
+	}
+}
+
+void CTFChatUnSlowMode(edict_t *ent)
+{
+	int i;
+	edict_t *targ;
+	char text[1024];
+	
+	if (ent->client->resp.admin<aset_vars->ADMIN_SILENCE_LEVEL) {
+		return;
+	}
+
+	if (gi.argc() < 2) {
+		CTFPlayerList(ent);
+		gi.cprintf(ent, PRINT_HIGH, "Who do you want to unslow?\n");
+		return;
+	}
+
+	if (*gi.argv(1) < '0' && *gi.argv(1) > '9') {
+		CTFPlayerList(ent);
+		gi.cprintf(ent, PRINT_HIGH, "Specify the player number to unsilence.\n");
+		return;
+	}
+
+	i = atoi(gi.argv(1));
+	if (i < 1 || i > maxclients->value) {
+		CTFPlayerList(ent);
+		gi.cprintf(ent, PRINT_HIGH, "Invalid player number.\n");
+		return;
+	}
+
+	targ = g_edicts + i;
+	if (!targ->inuse) {
+		CTFPlayerList(ent);
+		gi.cprintf(ent, PRINT_HIGH, "That player number is not connected.\n");
+		return;
+	}
+
+	if (ent->client->resp.admin>=aset_vars->ADMIN_SILENCE_LEVEL) {
+		//admin unsilence
+		targ->client->resp.chatslowmode = false;
+
+		sprintf(text,"unslowed %s.",targ->client->pers.netname);    // 084_h3
+		admin_log(ent,text);                                          // 084_h3
+
+		gi.bprintf(PRINT_HIGH, "%s is no longer in slow mode by %s.\n",   
+					targ->client->pers.netname,ent->client->pers.netname);
+	}
+}
+
 void CTFRand(edict_t *ent)
 {
 	char text[1024];
@@ -7801,6 +7950,9 @@ void say_person(edict_t *ent)
 		text[150] = 0;
 
 	strcat(text, "]\n");
+
+	if (CheckChatSlowMode(ent))
+		return;
 
 	if (CheckFlood(ent))
 		return;
